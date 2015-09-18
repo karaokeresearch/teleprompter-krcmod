@@ -9,6 +9,32 @@
 	-webkit-box-sizing: border-box;
 	box-sizing: border-box;
 }
+
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 50px;
+}
+
+
+::-webkit-scrollbar-button {
+  width: 0px;
+  height: 60px;
+}
+::-webkit-scrollbar-thumb {
+  height: 150px;
+  background: #e1e1e1;
+
+}
+
+
+
+@font-face {
+    font-family: 'Open Sans';
+    src: url('OpenSans-Regular.ttf') format('truetype');
+}
+
+
 body
 {
 	background-color: #141414;
@@ -82,7 +108,7 @@ article
 }
 body.playing article
 {
-	overflow: hidden;
+	//overflow: hidden;
 }
 article .teleprompter
 {

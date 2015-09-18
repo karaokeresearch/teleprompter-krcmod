@@ -1,35 +1,36 @@
-var initPageSpeed = 35,
+var initPageSpeed = 100,
 	initFontSize = 60,
 	scrollDelay,
 	textColor = '#ffffff',
 	backgroundColor = '#141414',
 	timer = $('.clock').timer({ stopVal: 10000 });
 
-$(function() {
+$(function() { // clone of $( document ).ready(function() {
 
 	// Check if we've been here before and made changes
-	if($.cookie('teleprompter_font_size'))
+	if(localStorage.getItem('teleprompter_font_size'))
 	{
-		initFontSize = $.cookie('teleprompter_font_size');
+		initFontSize = localStorage.getItem('teleprompter_font_size');
 	}
-	if($.cookie('teleprompter_speed'))
+	if(localStorage.getItem('teleprompter_speed'))
 	{
-		initPageSpeed = $.cookie('teleprompter_speed');
+		initPageSpeed = localStorage.getItem('teleprompter_speed');
 	}
-	if($.cookie('teleprompter_text'))
+	if(localStorage.getItem('teleprompter_text'))
 	{
-		$('#teleprompter').html($.cookie('teleprompter_text'));
+		//$('#teleprompter').html(localStorage.getItem('teleprompter_text'));
+		setTimeout(function(){$('#teleprompter').html(localStorage.getItem('teleprompter_text'))},1);  //not sure why this has to be inside a timeout, but it does, otherwise lines get appended to the top and bottom of the text.
 	}
-	if($.cookie('teleprompter_text_color'))
+	if(localStorage.getItem('teleprompter_text_color'))
 	{
-		textColor = $.cookie('teleprompter_text_color');
+		textColor = localStorage.getItem('teleprompter_text_color');
 		$('#text-color').val(textColor);
 		$('#text-color-picker').css('background-color', textColor);
 		$('#teleprompter').css('color', textColor);
 	}
-	if($.cookie('teleprompter_background_color'))
+	if(localStorage.getItem('teleprompter_background_color'))
 	{
-		backgroundColor = $.cookie('teleprompter_background_color');
+		backgroundColor = localStorage.getItem('teleprompter_background_color');
 		$('#background-color').val(backgroundColor);
 		$('#background-color-picker').css('background-color', textColor);
 		$('#teleprompter').css('background-color', backgroundColor);
@@ -43,6 +44,7 @@ $(function() {
 	$('#teleprompter').keyup(update_teleprompter);
 	$('body').keydown(navigate);
 
+
 	// Setup GUI
 	$('article').stop().animate({scrollTop: 0}, 100, 'linear', function(){ $('article').clearQueue(); });
 	$('.marker, .overlay').fadeOut(0);
@@ -53,7 +55,7 @@ $(function() {
 	// Create Font Size Slider
 	$('.font_size').slider({
 		min: 12,
-		max: 100,
+		max: 120,
 		value: initFontSize,
 		orientation: "horizontal",
 		range: "min",
@@ -65,7 +67,7 @@ $(function() {
 	// Create Speed Slider
 	$('.speed').slider({
 		min: 0,
-		max: 50,
+		max: 200,
 		value: initPageSpeed,
 		orientation: "horizontal",
 		range: "min",
@@ -77,12 +79,12 @@ $(function() {
 	$('#text-color').change(function(){
 		var color = $(this).val();
 		$('#teleprompter').css('color', color);
-		$.cookie('teleprompter_text_color', color);
+		localStorage.setItem('teleprompter_text_color', color);
 	});
 	$('#background-color').change(function(){
 		var color = $(this).val();
 		$('#teleprompter').css('background-color', color);
-		$.cookie('teleprompter_background_color', color);
+		localStorage.setItem('teleprompter_background_color', color);
 	});
 
 	// Run initial configuration on sliders
@@ -99,6 +101,7 @@ $(function() {
 		{
 			stop_teleprompter();
 		}
+		refocusWindow();
 	});
 	// Listen for FlipX Button Click
 	$('.button.flipx').click(function(){
@@ -110,6 +113,7 @@ $(function() {
 		{
 			$('.teleprompter').toggleClass('flipx');
 		}
+		refocusWindow();
 	});
 	// Listen for FlipY Button Click
 	$('.button.flipy').click(function(){
@@ -121,17 +125,30 @@ $(function() {
 		{
 			$('.teleprompter').toggleClass('flipy');
 		}
+		refocusWindow();
 	});
 	// Listen for Reset Button Click
 	$('.button.reset').click(function(){
 		stop_teleprompter();
 		timer.resetTimer();
 		$('article').stop().animate({scrollTop: 0}, 100, 'linear', function(){ $('article').clearQueue(); });
+		refocusWindow();
 	});
 });
 
+// Refocus body so keystrokes work after a button is hit
+
+function refocusWindow()
+{
+    //window.focus();
+    if (document.activeElement) {
+        document.activeElement.blur();
+    }
+    //$("#teleprompter").focus();
+}
+
 // Manage Font Size Change
-function fontSize(save_cookie)
+function fontSize(save_local)
 {
 	initFontSize = $('.font_size').slider( "value" );
 
@@ -148,29 +165,30 @@ function fontSize(save_cookie)
 
 	$('label.font_size_label span').text('(' + initFontSize + ')');
 
-	if(save_cookie)
+	if(save_local)
 	{
-		$.cookie('teleprompter_font_size', initFontSize);
+		localStorage.setItem('teleprompter_font_size', initFontSize);
 	}
 }
 
 // Manage Speed Change
-function speed(save_cookie)
+function speed(save_local)
 {
-	initPageSpeed = Math.floor(50 - $('.speed').slider('value'));
+	initPageSpeed = Math.floor(200 - $('.speed').slider('value'));
 	$('label.speed_label span').text('(' + $('.speed').slider('value') + ')');
 
-	if(save_cookie)
+	if(save_local)
 	{
-		$.cookie('teleprompter_speed', $('.speed').slider('value'));
+		localStorage.setItem('teleprompter_speed', $('.speed').slider('value'));
 	}
 }
 
 // Manage Scrolling Teleprompter
 function pageScroll()
 {
-	$('article').animate({scrollTop: "+=1px" }, 0, 'linear', function(){ $('article').clearQueue(); });
-
+	if ($('.speed').slider('value') >0){
+	        $('article').animate({scrollTop: "+=2px" }, 0, 'linear', function(){ $('article').clearQueue(); });
+	    }
 	clearTimeout(scrollDelay);
 	scrollDelay = setTimeout(pageScroll, initPageSpeed);
 
@@ -187,12 +205,15 @@ function pageScroll()
 // Listen for Key Presses on Body
 function navigate(evt)
 {
+ 
 	var space = 32,
 		escape = 27,
 		left = 37,
 		up = 38,
 		right = 39,
 		down = 40,
+		plus = 187,
+		minus = 189,
 		speed = $('.speed').slider('value'),
 		font_size = $('.font_size').slider('value');
 
@@ -209,6 +230,7 @@ function navigate(evt)
 	}
 
 	// Reset GUI
+	
 	if(evt.keyCode == escape)
 	{
 		$('.button.reset').trigger('click');
@@ -227,21 +249,21 @@ function navigate(evt)
 	// Decrease Speed with Left Arrow
 	else if(evt.keyCode == left)
 	{
-		$('.speed').slider('value', speed-1);
+		$('.speed').slider('value', speed-5);
 		evt.preventDefault();
 		evt.stopPropagation();
 		return false;
 	}
-	// Decrease Font Size with Down Arrow
-	else if(evt.keyCode == down)
+	// Decrease Font Size with Minus
+	else if(evt.keyCode == minus)
 	{
 		$('.font_size').slider('value', font_size-1);
 		evt.preventDefault();
 		evt.stopPropagation();
 		return false;
 	}
-	// Increase Font Size with Up Arrow
-	else if(evt.keyCode == up)
+	// Increase Font Size with Plus or Equals
+	else if(evt.keyCode == plus)
 	{
 		$('.font_size').slider('value', font_size+1);
 		evt.preventDefault();
@@ -251,7 +273,23 @@ function navigate(evt)
 	// Increase Speed with Right Arrow
 	else if(evt.keyCode == right)
 	{
-		$('.speed').slider('value', speed+1);
+		$('.speed').slider('value', speed+5);
+		evt.preventDefault();
+		evt.stopPropagation();
+		return false;
+	}
+    //go back a little. Only present since there's weird focus things happening where the up button doesn't do the right thing unless you manually click the scrollbar or teleprompter div
+	else if(evt.keyCode == up)  
+	{
+   $('article').animate({scrollTop: "-=100px" }, 200, 'linear', function(){ $('article').clearQueue(); });
+		evt.preventDefault();
+		evt.stopPropagation();
+		return false;
+	}
+    //go foreward a little. Only present since there's weird focus things happening where the up button doesn't do the right thing unless you manually click the scrollbar or teleprompter div
+	else if(evt.keyCode == down)  
+	{
+   $('article').animate({scrollTop: "+=100px" }, 200, 'linear', function(){ $('article').clearQueue(); });
 		evt.preventDefault();
 		evt.stopPropagation();
 		return false;
@@ -264,8 +302,8 @@ function start_teleprompter()
 	$('#teleprompter').attr('contenteditable', false);
 	$('body').addClass('playing');
 	$('.button.play').removeClass('icon-play').addClass('icon-pause');
-	$('header h1, header nav').fadeTo('slow', 0.15);
-	$('.marker, .overlay').fadeIn('slow');
+	//$('header h1, header nav').fadeTo('slow', 0.15);
+	//$('.marker, .overlay').fadeIn('slow');
 
 	window.timer.resetTimer();
 	window.timer.startTimer();
@@ -289,7 +327,7 @@ function stop_teleprompter()
 // Update Teleprompter
 function update_teleprompter()
 {
-	$.cookie('teleprompter_text', $('#teleprompter').html());
+	localStorage.setItem('teleprompter_text', $('#teleprompter').html());
 }
 
 // Clean Teleprompter
